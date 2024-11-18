@@ -1,9 +1,9 @@
 # Cookies
-Simple tool for getting Cookies of multiple Facebook Ids at Once, Coded By Farhan Ali
+Simple tool for getting Cookies of multiple Facebook IDs at Once, Coded By Farhan Ali
 
 # Run in Termux
 ```bash
-git clone https://github.com/farhanaliofficial/Cookies
+git clone https://github.com/farhaanaliii/Cookies
 cd Cookies
 python main.py
 ```
@@ -19,7 +19,7 @@ pkg install python
 ```
 
 # Screenshot
-![Screenshot](https://github.com/farhanaliofficial/Cookies/raw/main/Screenshot_20230717-140826.png)
+![Screenshot](https://github.com/farhaanaliii/Cookies/raw/main/Screenshot_20230717-140826.png)
 
 # Open source
 This tools is open source so you are free to use and modify this tool but you have to give credit.

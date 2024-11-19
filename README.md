@@ -43,7 +43,7 @@ The tool will then attempt to log in to each Facebook account and save the cooki
 2. Follow the steps above to clone the repository and run the script.
 
 ## Screenshot
-![Screenshot](https://github.com/farhaanaliii/Cookies/raw/main/Screenshot_20230717-140826.png)
+![Screenshot](https://raw.githubusercontent.com/farhaanaliii/Cookies/refs/heads/main/Screenshot_20241119-213349.png)
 
 ## Open Source
 This tool is open-source, so feel free to use and modify it. However, you must give credit to the original author.

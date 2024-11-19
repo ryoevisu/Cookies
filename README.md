@@ -1,9 +1,9 @@
-H# Facebook Cookie Extractor
+# Facebook Cookie Extractor
 A simple tool for extracting cookies from multiple Facebook IDs at once. Coded by Farhan Ali.
 
 ## Requirements
 - Python 3.x
-- Dependencies listed in `requirements.txt` (requests, pyrua, pycryptodome, nacl, cookiesparser)
+- Dependencies listed in `requirements.txt` (requests, pyrua, cookiesparser)
 
 ## Installation
 

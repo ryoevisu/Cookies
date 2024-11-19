@@ -1,0 +1,5 @@
+requests
+pyrua
+pycryptodome
+nacl
+cookiesparser
